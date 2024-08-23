@@ -30,6 +30,9 @@ class _CommentDetailScreenState extends State<CommentDetailScreen> {
     _loadArgsFromPreferences();
     _loadCurrentUserProfileImage();
     _commentController.addListener(_updateButtonState);
+
+    // コメントをリアルタイムで���得
+    Provider.of<CommentReplyProvider>(context, listen: false).loadComments(widget.bookId, widget.chapterId);
   }
 
   @override
@@ -56,9 +59,6 @@ class _CommentDetailScreenState extends State<CommentDetailScreen> {
       // 引数のログ出力
       print('Received bookId: $bookId');
       print('Received chapterId: $chapterId');
-
-      // コメントをリアルタイムで取得
-      Provider.of<CommentReplyProvider>(context, listen: false).loadComments(bookId, chapterId);
     } else {
       setState(() {
         bookId = '';

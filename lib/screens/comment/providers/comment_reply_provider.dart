@@ -28,7 +28,7 @@ class CommentReplyProvider with ChangeNotifier {
         .collection('chapters')
         .doc(chapterId)
         .collection('comments')
-        .orderBy('createdAt', descending: true) // コメントを作成日時で降順に並べる
+        .orderBy('createdAt', descending: true) 
         .snapshots()
         .listen((snapshot) {
       _comments = snapshot.docs;
@@ -36,6 +36,8 @@ class CommentReplyProvider with ChangeNotifier {
       if (!_isDisposed) {
         notifyListeners();
       }
+      // デバッグログを追加
+      print('Loaded comments: ${_comments.map((doc) => doc.data()).toList()}');
     }, onError: (error) {
       _isLoading = false;
       if (!_isDisposed) {
@@ -76,9 +78,11 @@ class CommentReplyProvider with ChangeNotifier {
           .add({
             'userId': userId,
             'comment': comment,
-            'createdAt': FieldValue.serverTimestamp(),
+            'createdAt': FieldValue.serverTimestamp(), // サーバータイムスタンプを使用
             'selectedText': '…',
           });
+      // コメント追加後のログ
+      print('Comment added with createdAt: ${DateTime.now()}');
       // コメント追加後に再取得する必要はない
     } catch (e) {
       print('Error adding comment: $e');
@@ -108,7 +112,7 @@ class CommentReplyProvider with ChangeNotifier {
     }
   }
 
-  // 選択したテキストに対するコメントをリアルタイムで取得するメソッド
+  // 選択したテキストに対するコメントをリアルタ��ムで取得するメソッド
   void loadSelectedTextComments(String bookId, String chapterId, int start, int end) {
     _isLoading = true;
     notifyListeners();

@@ -16,6 +16,8 @@ class CommentList extends StatelessWidget {
         if (provider.comments.isEmpty) {
           return Center(child: Text('コメントがありません')); // コメントが一つもない場合の表示
         }
+        // クエリ結果のログを追加
+        print('Comments in CommentList: ${provider.comments.map((doc) => doc.data()).toList()}');
         return ListView.builder(
           itemCount: provider.comments.length,
           itemBuilder: (context, index) {
