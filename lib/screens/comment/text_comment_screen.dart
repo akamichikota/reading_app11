@@ -33,7 +33,6 @@ class _TextCommentScreenState extends State<TextCommentScreen> {
   @override
   void initState() {
     super.initState();
-    _loadArgsFromPreferences();
     _loadCurrentUserProfileImage();
     _commentController.addListener(_updateButtonState);
   }
@@ -86,29 +85,6 @@ class _TextCommentScreenState extends State<TextCommentScreen> {
   Future<void> _saveArgsToPreferences(Map<String, dynamic> args) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('commentArgs', jsonEncode(args));
-  }
-
-  Future<void> _loadArgsFromPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    final argsString = prefs.getString('commentArgs');
-    if (argsString != null) {
-      final args = jsonDecode(argsString) as Map<String, dynamic>;
-      setState(() {
-        bookId = args['bookId'] ?? '';
-        chapterId = args['chapterId'] ?? '';
-        start = args['start'] ?? 0;
-        end = args['end'] ?? 0;
-        selectedText = args['selectedText'] ?? ''; // 選択テキストを取得
-      });
-    } else {
-      setState(() {
-        bookId = '';
-        chapterId = '';
-        start = 0;
-        end = 0;
-        selectedText = '';
-      });
-    }
   }
 
   Future<void> _loadCurrentUserProfileImage() async {
@@ -164,6 +140,22 @@ class _TextCommentScreenState extends State<TextCommentScreen> {
     );
   }
 
+  void _showFullTextDialog(String text) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('選択テキスト'),
+        content: Text(text),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('閉じる'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (bookId.isEmpty || chapterId.isEmpty) {
@@ -177,18 +169,37 @@ class _TextCommentScreenState extends State<TextCommentScreen> {
       create: (_) => CommentReplyProvider()..loadSelectedTextComments(bookId, chapterId, start, end),
       child: Scaffold(
         appBar: AppBar(title: Text('コメント')),
-        body: Consumer<CommentReplyProvider>(
-          builder: (context, provider, child) {
-            if (provider.isLoading) {
-              return Center(child: CircularProgressIndicator());
-            }
-            if (provider.comments.isEmpty && !provider.isLoading) {
-              return Center(child: Text('コメントがありません')); // コメントが一つもない場合の表示
-            }
-            // コメントが取得された場合、ログを出力
-            print('Received comments: ${provider.comments.map((comment) => comment.data()).toList()}');
-            return TextCommentList(bookId: widget.bookId, chapterId: widget.chapterId, start: start, end: end);
-          },
+        body: Column(
+          children: [
+            GestureDetector(
+              onTap: () => _showFullTextDialog(selectedText),
+              child: Container(
+                padding: EdgeInsets.all(16.0),
+
+                child: Text(
+                  selectedText,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+            Divider(),
+            Expanded(
+              child: Consumer<CommentReplyProvider>(
+                builder: (context, provider, child) {
+                  if (provider.isLoading) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  if (provider.comments.isEmpty && !provider.isLoading) {
+                    return Center(child: Text('コメントがありません')); // コメントが一つもない場合の表示
+                  }
+                  // コメントが取得された場合、ログを出力
+                  print('Received comments: ${provider.comments.map((comment) => comment.data()).toList()}');
+                  return TextCommentList(bookId: widget.bookId, chapterId: widget.chapterId, start: start, end: end);
+                },
+              ),
+            ),
+          ],
         ),
         bottomNavigationBar: Padding(
           padding: const EdgeInsets.all(16.0),
