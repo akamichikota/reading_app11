@@ -112,7 +112,7 @@ class CommentReplyProvider with ChangeNotifier {
     }
   }
 
-  // 選択したテキストに対するコメントをリアルタ��ムで取得するメソッド
+  // 選択したテキストに対するコメントをリアルタイムで取得するメソッド
   void loadSelectedTextComments(String bookId, String chapterId, int start, int end) {
     _isLoading = true;
     notifyListeners();
@@ -125,16 +125,19 @@ class CommentReplyProvider with ChangeNotifier {
         .collection('comments')
         .where('start', isEqualTo: start)
         .where('end', isEqualTo: end)
+        .orderBy('createdAt', descending: true)
         .snapshots()
         .listen((snapshot) {
-      _comments = snapshot.docs;
-      _isLoading = false;
       if (!_isDisposed) {
+        _comments = snapshot.docs;
+        _isLoading = false;
         notifyListeners();
+        // クエリ結果のデバッグログを追加
+        print('Loaded selected text comments: ${_comments.map((doc) => doc.data()).toList()}');
       }
     }, onError: (error) {
-      _isLoading = false;
       if (!_isDisposed) {
+        _isLoading = false;
         notifyListeners();
       }
       print('Error loading selected text comments: $error');
