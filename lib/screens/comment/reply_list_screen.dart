@@ -205,8 +205,8 @@ class _ReplyListScreenState extends State<ReplyListScreen> {
           .collection('replies')
           .add({
         'reply': _replyController.text,
-        'user_id': user.uid,
-        'created_at': FieldValue.serverTimestamp(),
+        'userId': user.uid,
+        'createdAt': FieldValue.serverTimestamp(),
         'selectedText': '…',
       });
       _replyController.clear();

@@ -118,14 +118,19 @@ class _CommentItemState extends State<CommentItem> {
                 ],
               ),
               SizedBox(height: 4.0),
-              Container(
-                margin: EdgeInsets.only(left: 48.0),
-                constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),
-                child: Text(
-                  commentText,
-                  style: TextStyle(fontSize: 16.0),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 3,
+              GestureDetector(
+                onTap: () {
+                  _showFullCommentDialog(context, commentText);
+                },
+                child: Container(
+                  margin: EdgeInsets.only(left: 48.0),
+                  constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),
+                  child: Text(
+                    commentText,
+                    style: TextStyle(fontSize: 16.0),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 5, // コメントは最大5行まで表示される
+                  ),
                 ),
               ),
               SizedBox(height: 4.0),
@@ -233,6 +238,22 @@ class _CommentItemState extends State<CommentItem> {
       builder: (context) => AlertDialog(
         title: Text('引用文章'),
         content: Text(text),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('閉じる'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFullCommentDialog(BuildContext context, String comment) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('コメント全文'),
+        content: Text(comment),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),

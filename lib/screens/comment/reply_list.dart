@@ -41,7 +41,7 @@ class ReplyList extends StatelessWidget {
                 );
               }
 
-              final replyUserId = replyData['user_id'];
+              final replyUserId = replyData['userId'];
               final currentUser = FirebaseAuth.instance.currentUser;
               final likes = replyData.containsKey('likes') ? List<String>.from(replyData['likes']) : [];
               final isLiked = likes.contains(FirebaseAuth.instance.currentUser?.uid);

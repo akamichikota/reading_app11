@@ -28,6 +28,7 @@ class CommentReplyProvider with ChangeNotifier {
         .collection('chapters')
         .doc(chapterId)
         .collection('comments')
+        .orderBy('createdAt', descending: true) // コメントを作成日時で降順に並べる
         .snapshots()
         .listen((snapshot) {
       _comments = snapshot.docs;
@@ -53,6 +54,7 @@ class CommentReplyProvider with ChangeNotifier {
         .collection('comments')
         .doc(commentId)
         .collection('replies')
+        .orderBy('createdAt', descending: true) // 返信を作成日時で降順に並べる
         .snapshots()
         .listen((snapshot) {
       _replies = snapshot.docs;
