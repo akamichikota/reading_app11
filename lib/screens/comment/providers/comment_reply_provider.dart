@@ -5,9 +5,11 @@ class CommentReplyProvider with ChangeNotifier {
   List<QueryDocumentSnapshot> _comments = [];
   List<QueryDocumentSnapshot> _replies = [];
   bool _isDisposed = false;
+  bool _isLoading = false;
 
   List<QueryDocumentSnapshot> get comments => _comments;
   List<QueryDocumentSnapshot> get replies => _replies;
+  bool get isLoading => _isLoading;
 
   @override
   void dispose() {
@@ -17,6 +19,9 @@ class CommentReplyProvider with ChangeNotifier {
 
   // コメントをリアルタイムで取得するメソッド
   void loadComments(String bookId, String chapterId) {
+    _isLoading = true;
+    notifyListeners();
+
     FirebaseFirestore.instance
         .collection('books')
         .doc(bookId)
@@ -26,9 +31,16 @@ class CommentReplyProvider with ChangeNotifier {
         .snapshots()
         .listen((snapshot) {
       _comments = snapshot.docs;
+      _isLoading = false;
       if (!_isDisposed) {
         notifyListeners();
       }
+    }, onError: (error) {
+      _isLoading = false;
+      if (!_isDisposed) {
+        notifyListeners();
+      }
+      print('Error loading comments: $error');
     });
   }
 
@@ -70,6 +82,7 @@ class CommentReplyProvider with ChangeNotifier {
       print('Error adding comment: $e');
     }
   }
+
   Future<void> addTextComment(String bookId, String chapterId, String userId, String comment, int start, int end, String selectedText) async {
     try {
       await FirebaseFirestore.instance
@@ -86,7 +99,8 @@ class CommentReplyProvider with ChangeNotifier {
             'start': start,
             'end': end,
           });
-      // コメント追加後に再取得する��要はない
+      // コメント追加後にコメントリストを再読み込み
+      loadSelectedTextComments(bookId, chapterId, start, end);
     } catch (e) {
       print('Error adding comment: $e');
     }
@@ -94,6 +108,9 @@ class CommentReplyProvider with ChangeNotifier {
 
   // 選択したテキストに対するコメントをリアルタイムで取得するメソッド
   void loadSelectedTextComments(String bookId, String chapterId, int start, int end) {
+    _isLoading = true;
+    notifyListeners();
+
     FirebaseFirestore.instance
         .collection('books')
         .doc(bookId)
@@ -105,9 +122,16 @@ class CommentReplyProvider with ChangeNotifier {
         .snapshots()
         .listen((snapshot) {
       _comments = snapshot.docs;
+      _isLoading = false;
       if (!_isDisposed) {
         notifyListeners();
       }
+    }, onError: (error) {
+      _isLoading = false;
+      if (!_isDisposed) {
+        notifyListeners();
+      }
+      print('Error loading selected text comments: $error');
     });
   }
 }

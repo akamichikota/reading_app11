@@ -14,7 +14,7 @@ class CommentList extends StatelessWidget {
     return Consumer<CommentReplyProvider>(
       builder: (context, provider, child) {
         if (provider.comments.isEmpty) {
-          return Center(child: Text('コメントがありません'));
+          return Center(child: Text('コメントがありません')); // コメントが一つもない場合の表示
         }
         return ListView.builder(
           itemCount: provider.comments.length,

@@ -15,7 +15,10 @@ class TextCommentList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<CommentReplyProvider>(
       builder: (context, provider, child) {
-        if (provider.comments.isEmpty) {
+        if (provider.isLoading) {
+          return Center(child: CircularProgressIndicator());
+        }
+        if (provider.comments.isEmpty && !provider.isLoading) {
           return Center(child: Text('コメントがありません'));
         }
         return ListView.builder(

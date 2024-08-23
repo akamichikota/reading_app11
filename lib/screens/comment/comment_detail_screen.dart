@@ -60,10 +60,10 @@ class _CommentDetailScreenState extends State<CommentDetailScreen> {
       // コメントをリアルタイムで取得
       Provider.of<CommentReplyProvider>(context, listen: false).loadComments(bookId, chapterId);
     } else {
-      // 引数がnullの場合の処理
-      bookId = '';
-      chapterId = '';
-      print('引数が正しく渡されていません');
+      setState(() {
+        bookId = '';
+        chapterId = '';
+      });
     }
   }
 
@@ -152,13 +152,12 @@ class _CommentDetailScreenState extends State<CommentDetailScreen> {
         appBar: AppBar(title: Text('コメント')),
         body: Consumer<CommentReplyProvider>(
           builder: (context, provider, child) {
-            // コメントがまだ取得されていない場合
-            if (provider.comments.isEmpty) {
+            if (provider.isLoading) {
               return Center(child: CircularProgressIndicator());
             }
-            // コメントが取得された場合、ログを出力
-            print('Received comments: ${provider.comments.map((comment) => comment.data()).toList()}');
-            // コメントが取得された場合
+            if (provider.comments.isEmpty && !provider.isLoading) {
+              return Center(child: Text('コメントがありません')); // コメントが一つもない場合の表示
+            }
             return CommentList(bookId: widget.bookId, chapterId: widget.chapterId);
           },
         ),
