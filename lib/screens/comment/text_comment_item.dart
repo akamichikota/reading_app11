@@ -6,6 +6,9 @@ import 'like_button.dart';
 import 'utils/comment_utils.dart';
 import 'utils/user_utils.dart';
 import 'package:flutter_profile_picture/flutter_profile_picture.dart';
+import 'package:provider/provider.dart'; // Added this line to import Provider
+import 'providers/comment_reply_provider.dart';
+
 
 class CommentItem extends StatefulWidget {
   final DocumentSnapshot comment;
@@ -134,9 +137,9 @@ class _CommentItemState extends State<CommentItem> {
                       isLiked: isLiked,
                       likes: List<String>.from(likes),
                       comment: widget.comment,
-                    ),
-                    SizedBox(width: 4.0),
-                    Text('${likes.length}'),
+                    ),                   
+                    Text('${likes.length}'), // いいねの数を表示
+                    SizedBox(width: 8.0),                    
                     IconButton(
                       icon: Icon(Icons.sms),
                       onPressed: () {
@@ -149,6 +152,20 @@ class _CommentItemState extends State<CommentItem> {
                             'chapterId': widget.chapterId,
                           },
                         );
+                      },
+                    ),
+                    // ここで返信数を表示
+                    FutureBuilder<int>(
+                      future: Provider.of<CommentReplyProvider>(context, listen: false)
+                          .getReplyCount(widget.bookId, widget.chapterId, commentId),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return CircularProgressIndicator(); // ローディング中
+                        }
+                        if (snapshot.hasError) {
+                          return Text('エラー'); // エラー処理
+                        }
+                        return Text('${snapshot.data}'); // 返信数を表示
                       },
                     ),
                   ],

@@ -143,4 +143,17 @@ class CommentReplyProvider with ChangeNotifier {
       print('Error loading selected text comments: $error');
     });
   }
+
+  Future<int> getReplyCount(String bookId, String chapterId, String commentId) async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('books')
+        .doc(bookId)
+        .collection('chapters')
+        .doc(chapterId)
+        .collection('comments')
+        .doc(commentId)
+        .collection('replies')
+        .get();
+    return snapshot.docs.length; // 返信の数を返す
+  }
 }
