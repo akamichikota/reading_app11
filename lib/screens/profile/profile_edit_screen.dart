@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
 
 class ProfileEditScreen extends StatefulWidget {
   @override
@@ -27,7 +28,6 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     final User? user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
-      // ユーザーがログインしていない場合はログインページにリダイレクト
       Future.microtask(() {
         Navigator.pushReplacementNamed(context, '/login');
       });
@@ -62,7 +62,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
   Future<void> _pickProfileImage() async {
     final result = await FilePicker.platform.pickFiles(type: FileType.image);
-    if (result != null) {
+    if (result != null && result.files.isNotEmpty) {
       final file = result.files.first;
       final User user = FirebaseAuth.instance.currentUser!;
       final firebase_storage.Reference ref = firebase_storage.FirebaseStorage.instance
@@ -70,47 +70,81 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           .child('profile_images')
           .child('${user.uid}.jpg');
 
-      final firebase_storage.UploadTask uploadTask = ref.putData(file.bytes!);
+      // Check if the file has bytes, if not read from file path
+      if (file.bytes != null) {
+        final firebase_storage.UploadTask uploadTask = ref.putData(file.bytes!);
+        final snapshot = await uploadTask.whenComplete(() => {});
+        final downloadUrl = await snapshot.ref.getDownloadURL();
 
-      final snapshot = await uploadTask.whenComplete(() => {});
-      final downloadUrl = await snapshot.ref.getDownloadURL();
+        if (mounted) {
+          setState(() {
+            _profileImageUrl = downloadUrl;
+          });
+        }
 
-      setState(() {
-        _profileImageUrl = downloadUrl;
-      });
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+          'profileImageUrl': downloadUrl,
+        });
 
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
-        'profileImageUrl': downloadUrl,
-      });
+        _saveState();
+      } else if (file.path != null) {
+        final fileBytes = await File(file.path!).readAsBytes();
+        final firebase_storage.UploadTask uploadTask = ref.putData(fileBytes);
+        final snapshot = await uploadTask.whenComplete(() => {});
+        final downloadUrl = await snapshot.ref.getDownloadURL();
 
-      _saveState();
+        if (mounted) {
+          setState(() {
+            _profileImageUrl = downloadUrl;
+          });
+        }
+
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+          'profileImageUrl': downloadUrl,
+        });
+
+        _saveState();
+      } else {
+        print('ファイルのバイトデータが取得できませんでした。');
+      }
+    } else {
+      print('画像が選択されませんでした。');
     }
   }
 
   Future<void> _pickBackgroundImage() async {
     final result = await FilePicker.platform.pickFiles(type: FileType.image);
-    if (result != null) {
+    if (result != null && result.files.isNotEmpty) {
       final file = result.files.first;
-      final User user = FirebaseAuth.instance.currentUser!;
-      final firebase_storage.Reference ref = firebase_storage.FirebaseStorage.instance
-          .ref()
-          .child('background_images')
-          .child('${user.uid}.jpg');
 
-      final firebase_storage.UploadTask uploadTask = ref.putData(file.bytes!);
+      final filePath = file.path;
+      if (filePath != null) {
+        final fileBytes = await File(filePath).readAsBytes();
 
-      final snapshot = await uploadTask.whenComplete(() => {});
-      final downloadUrl = await snapshot.ref.getDownloadURL();
+        final User user = FirebaseAuth.instance.currentUser!;
+        final firebase_storage.Reference ref = firebase_storage.FirebaseStorage.instance
+            .ref()
+            .child('background_images')
+            .child('${user.uid}.jpg');
 
-      setState(() {
-        _backgroundImageUrl = downloadUrl;
-      });
+        final firebase_storage.UploadTask uploadTask = ref.putData(fileBytes);
+        final snapshot = await uploadTask.whenComplete(() => {});
+        final downloadUrl = await snapshot.ref.getDownloadURL();
 
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
-        'backgroundImageUrl': downloadUrl,
-      });
+        setState(() {
+          _backgroundImageUrl = downloadUrl;
+        });
 
-      _saveState();
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+          'backgroundImageUrl': downloadUrl,
+        });
+
+        _saveState();
+      } else {
+        print('ファイルのパスが取得できませんでした。');
+      }
+    } else {
+      print('画像が選択されませんでした。');
     }
   }
 
@@ -163,7 +197,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       if (_backgroundImageUrl != null) 'backgroundImageUrl': _backgroundImageUrl,
     });
     _saveState();
-    Navigator.pop(context, true); // 戻る際に true を渡して、プロフィールページをリフレッシュ
+    Navigator.pop(context, true);
   }
 
   @override
