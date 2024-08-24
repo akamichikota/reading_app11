@@ -28,9 +28,9 @@ class _ReplyListScreenState extends State<ReplyListScreen> {
   }
 
   Future<void> _loadState() async {
-    final prefs = await SharedPreferences.getInstance();
+    // 入力フィールドを空にする
     setState(() {
-      _replyController.text = prefs.getString('replyText') ?? '';
+      _replyController.text = ''; // ここで入力フィールドを空にする
     });
   }
 
@@ -172,6 +172,7 @@ class _ReplyListScreenState extends State<ReplyListScreen> {
                 ),
                 onChanged: (text) {
                   _saveState(); // 状態を保存
+                  setState(() {}); // ボタンの状態を更新
                 },
               ),
             ),
