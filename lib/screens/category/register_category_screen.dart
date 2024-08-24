@@ -67,7 +67,6 @@ class _RegisterCategoryScreenState extends State<RegisterCategoryScreen> {
     );
 
     setState(() {
-      _selectedBookId = null;
       _wideCoverUrl = null;
     });
   }
@@ -97,7 +96,6 @@ class _RegisterCategoryScreenState extends State<RegisterCategoryScreen> {
     );
 
     setState(() {
-      _selectedBookId = null;
       _selectedCategories = [];
     });
   }
@@ -121,7 +119,6 @@ class _RegisterCategoryScreenState extends State<RegisterCategoryScreen> {
     );
 
     setState(() {
-      _selectedBookId = null;
       _selectedCategories = [];
     });
   }
@@ -219,7 +216,7 @@ class _RegisterCategoryScreenState extends State<RegisterCategoryScreen> {
           IconButton(
             icon: Icon(Icons.close),
             onPressed: () {
-              Navigator.pushNamed(context, '/');
+              Navigator.pushNamed(context, '/settings');
             },
           ),
         ],
@@ -303,6 +300,21 @@ class _RegisterCategoryScreenState extends State<RegisterCategoryScreen> {
                 child: Text('カテゴリーを削除'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/add_book');
+                },
+                child: Text('本追加へ'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,
                   padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
                   shape: RoundedRectangleBorder(

@@ -80,8 +80,6 @@ class _AddBookScreenState extends State<AddBookScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('書籍が追加されました')),
     );
-
-    Navigator.pop(context);
   }
 
   void _addChapter() {
@@ -96,7 +94,17 @@ class _AddBookScreenState extends State<AddBookScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('書籍を追加')),
+      appBar: AppBar(
+        title: Text('書籍を追加'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.close),
+            onPressed: () {
+              Navigator.pushNamed(context, '/settings');
+            },
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(

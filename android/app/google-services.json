@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "289292635767",
-    "project_id": "readingapp9",
-    "storage_bucket": "readingapp9.appspot.com"
+    "project_number": "842703409113",
+    "project_id": "flutter-base-app-b41d1",
+    "storage_bucket": "flutter-base-app-b41d1.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:289292635767:android:bee0445b6362d415944072",
+        "mobilesdk_app_id": "1:842703409113:android:a641f8eae977ff447813c8",
         "android_client_info": {
           "package_name": "com.example.app"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDzk_RvTv4JaqGexhl3lXGNOIAHO3n4tio"
+          "current_key": "AIzaSyA4Jw6KDr-Zvt5dMFS5KxrEYhHfGixVUqY"
         }
       ],
       "services": {
