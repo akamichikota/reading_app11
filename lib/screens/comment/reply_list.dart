@@ -104,41 +104,62 @@ class ReplyList extends StatelessWidget {
                           ),
                           SizedBox(width: 8.0),
                           Expanded(
-                            child: Column(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      child: Text(replyUsername),
-                                    ),
-                                    if (replyUserId == currentUser?.uid)
-                                      IconButton(
-                                        icon: Icon(Icons.delete),
-                                        iconSize: 16.0,
-                                        onPressed: () => deleteReply(bookId, chapterId, commentId, reply.id),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(replyUsername),
+                                      SizedBox(height: 4.0),
+                                      GestureDetector(
+                                        onTap: () {
+                                          showDialog(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return AlertDialog(
+                                                title: Text('返信'),
+                                                content: Text(replyData['reply'] ?? 'No reply'),
+                                                actions: [
+                                                  TextButton(
+                                                    child: Text('閉じる'),
+                                                    onPressed: () {
+                                                      Navigator.of(context).pop();
+                                                    },
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          );
+                                        },
+                                        child: Text(
+                                          replyData['reply'] ?? 'No reply',
+                                          softWrap: true,
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 5,
+                                        ),
                                       ),
-                                  ],
+                                      Row(
+                                        children: [
+                                          LikeButton(
+                                            isLiked: isLiked,
+                                            likes: List<String>.from(likes),
+                                            comment: reply,
+                                          ),
+                                          SizedBox(width: 4.0),
+                                          Text('${likes.length}'),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                SizedBox(height: 4.0),
-                                Text(
-                                  replyData['reply'] ?? 'No reply',
-                                  softWrap: true,
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 3,
-                                ),
-                                Row(
-                                  children: [
-                                    LikeButton(
-                                      isLiked: isLiked,
-                                      likes: List<String>.from(likes),
-                                      comment: reply,
-                                    ),
-                                    SizedBox(width: 4.0),
-                                    Text('${likes.length}'), // いいねの数を表示
-                                  ],
-                                ),
+                                if (replyUserId == currentUser?.uid)
+                                  IconButton(
+                                    icon: Icon(Icons.delete),
+                                    onPressed: () => deleteReply(bookId, chapterId, commentId, reply.id),
+                                  ),
                               ],
                             ),
                           ),

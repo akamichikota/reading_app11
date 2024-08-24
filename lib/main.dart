@@ -109,8 +109,8 @@ class MyApp extends StatelessWidget {
           },
           '/add_book': (context) => AddBookScreen(),
           '/register_category': (context) => RegisterCategoryScreen(),
-          '/groups': (context) => GroupScreen(),
-          '/settings': (context) => SettingsScreen(),
+          '/groups': (context) => MainScreen(initialIndex: 2),
+          '/settings': (context) => MainScreen(initialIndex: 3),
         },
       ),
     );

@@ -4,7 +4,7 @@
 アイフォンから写真を登録できるようにする
 ホーム画面のレイアウト
 プロフィール編集ページUI
-本追加カテゴリー追加ページUI
+リロード時にエラーにならないようにする
 
 
 返信のUI
@@ -14,5 +14,5 @@
 
 
 
-git tag -a v12 -m "Phase 12 completed"
-git push origin v12
+git tag -a v123 -m "Phase 123 completed"
+git push origin v123

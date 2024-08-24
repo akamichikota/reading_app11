@@ -43,15 +43,17 @@ class _ReplyListScreenState extends State<ReplyListScreen> {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
       final userSnapshot = await FirebaseFirestore.instance.collection('users').doc(currentUser.uid).get();
-      setState(() {
-        _currentUserProfileImage = userSnapshot['profileImageUrl'] ?? 'https://via.placeholder.com/150';
-      });
+      if (userSnapshot.exists) {
+        setState(() {
+          _currentUserProfileImage = userSnapshot['profileImageUrl'] ?? 'https://via.placeholder.com/150';
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final commentData = widget.comment.data() as Map<String, dynamic>?; // null許容型に変更
+    final commentData = widget.comment.data() as Map<String, dynamic>?; 
     if (commentData == null) {
       return Center(child: Text('コメントデータが見つかりません'));
     }
@@ -78,7 +80,7 @@ class _ReplyListScreenState extends State<ReplyListScreen> {
             return Center(child: Text('ユーザーが見つかりません'));
           }
 
-          final userData = userSnapshot.data!.data() as Map<String, dynamic>?; // null許容型に変更
+          final userData = userSnapshot.data!.data() as Map<String, dynamic>?; 
           if (userData == null) {
             return Center(child: Text('ユーザーデータが見つかりません'));
           }
@@ -121,9 +123,9 @@ class _ReplyListScreenState extends State<ReplyListScreen> {
                     maxLines: 10,
                   ),
                 ),
-                Divider(), // 元のコメントと返信の区切り線
+                Divider(),
                 Container(
-                  height: MediaQuery.of(context).size.height - 150, // 高さを調整
+                  height: MediaQuery.of(context).size.height - 150,
                   child: ReplyList(
                     bookId: widget.bookId,
                     chapterId: widget.chapterId,
@@ -161,16 +163,14 @@ class _ReplyListScreenState extends State<ReplyListScreen> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15.0),
                   ),
-                  contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 12.0), // 縦のパディングを調整
+                  contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 12.0),
                 ),
                 onChanged: (text) {
-                  setState(() {
-                    _saveState();
-                  });
+                  _saveState(); // 状態を保存
                 },
               ),
             ),
-            SizedBox(width: 12.0), // ここで間隔を追加
+            SizedBox(width: 12.0),
             ElevatedButton(
               onPressed: _replyController.text.isNotEmpty ? _addReply : null,
               child: Text('返信'),
@@ -178,7 +178,7 @@ class _ReplyListScreenState extends State<ReplyListScreen> {
                 padding: EdgeInsets.zero,
                 backgroundColor: _replyController.text.isNotEmpty ? Colors.blue : Colors.grey,
                 foregroundColor: Colors.white,
-                minimumSize: Size(60, 40), // ボタンのサイズを固定
+                minimumSize: Size(60, 40),
               ),
             ),
           ],
