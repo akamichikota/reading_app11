@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io'; // Added for file path and bytes
 
 class ProfileEditScreen extends StatefulWidget {
   @override
@@ -89,28 +90,38 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
   Future<void> _pickBackgroundImage() async {
     final result = await FilePicker.platform.pickFiles(type: FileType.image);
-    if (result != null) {
-      final file = result.files.first;
-      final User user = FirebaseAuth.instance.currentUser!;
-      final firebase_storage.Reference ref = firebase_storage.FirebaseStorage.instance
-          .ref()
-          .child('background_images')
-          .child('${user.uid}.jpg');
+    if (result != null && result.files.isNotEmpty) {
+        final file = result.files.first;
 
-      final firebase_storage.UploadTask uploadTask = ref.putData(file.bytes!);
+        // ファイルのパスを取得
+        final filePath = file.path;
+        if (filePath != null) {
+            final fileBytes = await File(filePath).readAsBytes(); // バイトデータを読み込む
 
-      final snapshot = await uploadTask.whenComplete(() => {});
-      final downloadUrl = await snapshot.ref.getDownloadURL();
+            final User user = FirebaseAuth.instance.currentUser!;
+            final firebase_storage.Reference ref = firebase_storage.FirebaseStorage.instance
+                .ref()
+                .child('background_images')
+                .child('${user.uid}.jpg');
 
-      setState(() {
-        _backgroundImageUrl = downloadUrl;
-      });
+            final firebase_storage.UploadTask uploadTask = ref.putData(fileBytes);
+            final snapshot = await uploadTask.whenComplete(() => {});
+            final downloadUrl = await snapshot.ref.getDownloadURL();
 
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
-        'backgroundImageUrl': downloadUrl,
-      });
+            setState(() {
+                _backgroundImageUrl = downloadUrl;
+            });
 
-      _saveState();
+            await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+                'backgroundImageUrl': downloadUrl,
+            });
+
+            _saveState();
+        } else {
+            print('ファイルのパスが取得できませんでした。');
+        }
+    } else {
+        print('画像が選択されませんでした。');
     }
   }
 
