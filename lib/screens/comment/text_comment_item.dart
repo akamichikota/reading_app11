@@ -1,0 +1,242 @@
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'reply_section.dart';
+import 'like_button.dart';
+import 'utils/comment_utils.dart';
+import 'utils/user_utils.dart';
+import 'package:flutter_profile_picture/flutter_profile_picture.dart';
+
+class CommentItem extends StatefulWidget {
+  final DocumentSnapshot comment;
+  final String bookId;
+  final String chapterId;
+
+  CommentItem({required this.comment, required this.bookId, required this.chapterId});
+
+  @override
+  _CommentItemState createState() => _CommentItemState();
+}
+
+class _CommentItemState extends State<CommentItem> {
+  final Map<String, TextEditingController> _replyControllers = {};
+  final Map<String, bool> _isReplying = {};
+  final Map<String, bool> _isReplyDetailsVisible = {};
+
+  @override
+  Widget build(BuildContext context) {
+    final commentData = widget.comment.data() as Map<String, dynamic>;
+
+    // User IDのnullチェック
+    final userId = commentData['userId'] ?? '不明'; // デフォルト値を設定
+    final selectedText = commentData['selectedText'] ?? '選択されたテキストはありません'; // デフォルト値を設定
+    final commentText = commentData['comment'] ?? 'コメントがありません'; // デフォルト値を設定
+
+    print('User ID: $userId');
+    print('Selected Text: $selectedText');
+    print('Comment: $commentText');
+
+    final commentUserId = userId;
+    final commentId = widget.comment.id;
+
+    return FutureBuilder<DocumentSnapshot>(
+      future: getUserInfo(commentUserId),
+      builder: (context, userSnapshot) {
+        if (!userSnapshot.hasData) {
+          return Center(child: CircularProgressIndicator());
+        }
+        if (userSnapshot.hasError) {
+          return Center(child: Text('エラー: ${userSnapshot.error}'));
+        }
+        if (!userSnapshot.data!.exists) {
+          return Center(child: Text('ユーザーが見つかりません'));
+        }
+        final user = userSnapshot.data!.data() as Map<String, dynamic>;
+        final username = user['username'] ?? 'Unknown';
+        final userProfileImage = user['profileImageUrl'] ?? '';
+        final likes = commentData.containsKey('likes') ? List<String>.from(commentData['likes']) : [];
+        final isLiked = likes.contains(FirebaseAuth.instance.currentUser?.uid);
+
+        // ユーザー情報のログ出力
+        print('User Data: $user');
+        print('Username: $username');
+        print('Profile Image URL: $userProfileImage');
+
+        _replyControllers[commentId] ??= TextEditingController();
+        _isReplying[commentId] ??= false;
+        _isReplyDetailsVisible[commentId] ??= false;
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded( // 追加: Expandedでラップ
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CircleAvatar(
+                          backgroundImage: userProfileImage.isNotEmpty
+                              ? NetworkImage(userProfileImage)
+                              : null,
+                          child: userProfileImage.isEmpty
+                              ? ProfilePicture(
+                                  name: username,
+                                  radius: 31,
+                                  fontsize: 21,
+                                  random: true,
+                                )
+                              : null,
+                        ),
+                        SizedBox(width: 8.0),
+                        Expanded( // ここを追加
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(username, style: TextStyle(fontWeight: FontWeight.bold)),
+                              GestureDetector(
+                                onTap: () {
+                                  _showFullCommentDialog(context, commentText);
+                                },
+                                child: Container(
+                                  constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7), // 幅を調整
+                                  child: Text(
+                                    commentText,
+                                    style: TextStyle(fontSize: 16.0),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 5,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (commentUserId == FirebaseAuth.instance.currentUser?.uid)
+                    IconButton(
+                      icon: Icon(Icons.delete),
+                      onPressed: () => deleteComment(widget.bookId, widget.chapterId, commentId),
+                    ),
+                ],
+              ),
+              SizedBox(height: 4.0),
+              Container(
+                margin: EdgeInsets.only(left: 48.0),
+                child: Row(
+                  children: [
+                    LikeButton(
+                      isLiked: isLiked,
+                      likes: List<String>.from(likes),
+                      comment: widget.comment,
+                    ),
+                    SizedBox(width: 4.0),
+                    Text('${likes.length}'),
+                    IconButton(
+                      icon: Icon(Icons.sms),
+                      onPressed: () {
+                        Navigator.pushNamed(
+                          context,
+                          '/reply_list',
+                          arguments: {
+                            'comment': widget.comment,
+                            'bookId': widget.bookId,
+                            'chapterId': widget.chapterId,
+                          },
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              if (_isReplyDetailsVisible[commentId]!)
+                ReplySection(
+                  commentId: commentId,
+                  bookId: widget.bookId,
+                  chapterId: widget.chapterId,
+                  replyControllers: _replyControllers,
+                  isReplying: _isReplying,
+                ),
+              if (_isReplying[commentId]!)
+                Padding(
+                  padding: const EdgeInsets.only(left: 48.0),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundImage: userProfileImage.isNotEmpty
+                            ? NetworkImage(userProfileImage)
+                            : null,
+                        child: userProfileImage.isEmpty
+                            ? ProfilePicture(
+                                name: username,
+                                radius: 31,
+                                fontsize: 21,
+                                random: true,
+                              )
+                            : null,
+                      ),
+                      SizedBox(width: 8.0),
+                      Expanded(
+                        child: TextField(
+                          controller: _replyControllers[commentId],
+                          decoration: InputDecoration(
+                            hintText: '返信する...',
+                            border: InputBorder.none,
+                          ),
+                          onChanged: (text) {
+                            setState(() {});
+                          },
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            _isReplying[commentId] = false;
+                          });
+                        },
+                        child: Text('キャンセル'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          addReply(widget.bookId, widget.chapterId, commentId, FirebaseAuth.instance.currentUser!.uid, _replyControllers[commentId]!.text);
+                          _replyControllers[commentId]?.clear();
+                          setState(() {
+                            _isReplying[commentId] = false;
+                          });
+                        },
+                        child: Text('返信'),
+                        style: TextButton.styleFrom(
+                          backgroundColor: _replyControllers[commentId]!.text.isNotEmpty ? Colors.blue : Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showFullCommentDialog(BuildContext context, String comment) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('コメント全文'),
+        content: Text(comment),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('閉じる'),
+          ),
+        ],
+      ),
+    );
+  }
+}

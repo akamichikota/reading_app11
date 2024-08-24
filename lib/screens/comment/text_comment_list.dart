@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/comment_reply_provider.dart';
-import 'comment_item.dart';
+import 'text_comment_item.dart';
 
 class TextCommentList extends StatelessWidget {
   final String bookId;

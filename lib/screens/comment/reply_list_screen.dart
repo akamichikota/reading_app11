@@ -112,15 +112,20 @@ class _ReplyListScreenState extends State<ReplyListScreen> {
                     ),
                   ),
                 ),
-                Container(
-                  margin: EdgeInsets.only(left: 68.0),
-                  constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),
-                  child: Text(
-                    commentData['comment'] ?? 'No comment',
-                    style: TextStyle(fontSize: 16.0),
-                    softWrap: true,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 10,
+                GestureDetector( // 追加: GestureDetectorでラップ
+                  onTap: () {
+                    _showFullCommentDialog(context, commentData['comment'] ?? 'No comment'); // ダイアログを表示
+                  },
+                  child: Container(
+                    margin: EdgeInsets.only(left: 68.0),
+                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),
+                    child: Text(
+                      commentData['comment'] ?? 'No comment',
+                      style: TextStyle(fontSize: 16.0),
+                      softWrap: true,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 5,
+                    ),
                   ),
                 ),
                 Divider(),
@@ -250,6 +255,24 @@ class _ReplyListScreenState extends State<ReplyListScreen> {
       builder: (context) => AlertDialog(
         title: Text('引用文章'),
         content: Text(text),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('閉じる'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFullCommentDialog(BuildContext context, String comment) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('コメント全文'),
+        content: SingleChildScrollView( // スクロール可能にする
+          child: Text(comment),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),

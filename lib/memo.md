@@ -13,6 +13,10 @@
 アイフォンから写真追加
 
 
+初めて返信ページ行ったら下から返信できない
+返信に入れているログを消す
+
+
 
 git tag -a v123 -m "Phase 123 completed"
 git push origin v123
